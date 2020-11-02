@@ -14,9 +14,7 @@ and open the template in the editor.
     border-radius: 5px;
 }
 
-.card:hover {
-    box-shadow: 8px 8px 16px 0 rgba(0,0,0,0.2);
-}
+.card:hover { box-shadow: 8px 8px 16px 0 rgba(0,0,0,0.2); }
 
 .panel-principal{
     margin: 10px;

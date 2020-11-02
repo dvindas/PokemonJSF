@@ -8,15 +8,12 @@ package com.mycompany.pokemonjsf.controller;
 import com.mycompany.pokemonjsf.model.PokemonDto;
 import com.mycompany.pokemonjsf.service.PokemonService;
 import com.mycompany.pokemonjsf.util.TipoPokemon;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -25,7 +22,6 @@ import javax.inject.Named;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import org.primefaces.PrimeFaces;
-import org.primefaces.model.UploadedFile;
 
 /**
  *
@@ -34,6 +30,8 @@ import org.primefaces.model.UploadedFile;
 @Named(value = "pokemonController")
 @ViewScoped
 public class PokemonController implements Serializable {
+    
+    private static final Logger LOG = Logger.getLogger(PokemonController.class.getName());
 
     @Inject
     private PokemonService pokemonService;
@@ -42,12 +40,9 @@ public class PokemonController implements Serializable {
     
     private PokemonDto pokemonSeleccionado;
     
-    private UploadedFile uf;
-
     private boolean registroCargado;
 
-    public PokemonController() {
-    }
+    public PokemonController() {}
 
     @PostConstruct
     public void init() {
@@ -81,18 +76,11 @@ public class PokemonController implements Serializable {
     public List<PokemonDto> getPokemones() {
         return pokemonService.getPokemones();
     }
-
-    public UploadedFile getUf() {
-        return uf;
-    }
-
-    public void setUf(UploadedFile uf) {
-        this.uf = uf;
-    }
     
     private void limpiar() {
         this.pokemonDto = new PokemonDto();
         this.pokemonDto.setId(UUID.randomUUID().toString());
+        this.pokemonDto.setSexo("M");
         this.pokemonSeleccionado = null;
         this.registroCargado = false;
     }
@@ -120,7 +108,7 @@ public class PokemonController implements Serializable {
        if(tipo.equals(TipoPokemon.PLANTA.getValue())){
            return "Planta";
        }
-       throw new IllegalArgumentException("El tipo de pokemón indicado no es válido.");
+       throw new IllegalArgumentException("El tipo de pokémon indicado no es válido.");
     }
 
     public void nuevoPokemonOnAction() {
@@ -130,17 +118,15 @@ public class PokemonController implements Serializable {
     public void guardarPokemonOnAction() {
         try {
             if (validarFormulario()) {
-                if(uf != null){
-                    copyFile(this.pokemonDto.getId(), uf.getInputstream());
-                }
-                
                 this.pokemonService.guardarPokemon(this.pokemonDto);
                 FacesContext.getCurrentInstance()
-                        .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Guardar Pokemon", "El pokemon se ha guardado correctamente."));
+                        .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Guardar Pokémon", "El pokémon se ha guardado correctamente."));
                 limpiar();
             }
         } catch (Exception ex) {
-
+            LOG.log(Level.SEVERE, "Ocurrió un error al guardar el pokémon.", ex);
+            FacesContext.getCurrentInstance()
+                    .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Guardar Pokémon", "Ocurrió un error al guardar el pokémon."));
         }
     }
 
@@ -156,7 +142,16 @@ public class PokemonController implements Serializable {
         if (pokemonDto.getTipo() == null || pokemonDto.getTipo().isEmpty()) {
             requeridos.add("Tipo");
         }
-        
+        if(pokemonDto.getAltura() == null || pokemonDto.getAltura() == 0.d){
+            requeridos.add("Altura");
+        }
+        if(pokemonDto.getPeso() == null || pokemonDto.getPeso() == 0.d){
+            requeridos.add("Peso");
+        }
+        if(pokemonDto.getSexo() == null || pokemonDto.getSexo().isEmpty()){
+            requeridos.add("Sexo");
+        }
+       
         if (!requeridos.isEmpty()) {
             FacesContext.getCurrentInstance()
                     .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación Formulario",
@@ -174,38 +169,18 @@ public class PokemonController implements Serializable {
                 this.pokemonService.eliminarPokemon(pokemonDto);
                 limpiar();
                 FacesContext.getCurrentInstance()
-                        .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Eliminar Pokemon", "El pokemon se ha eliminado correctamente."));
+                        .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Eliminar Pokémon", "El pokémon se ha eliminado correctamente."));
                 PrimeFaces.current().ajax().update("formPokemon");
                 PrimeFaces.current().ajax().update("dlgBusqueda");
             } else {
-                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Eliminar Pokemon",
-                        "Primero debes cargar el registro que deseas eliminar."));
+                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Eliminar Pokémon",
+                        "Primero debes cargar el pokémon que deseas eliminar."));
             }
         } catch (Exception ex) {
-
+            LOG.log(Level.SEVERE, "Ocurrió un error al eliminar el pokémon.", ex);
+            FacesContext.getCurrentInstance()
+                    .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Guardar Pokémon", "Ocurrió un error al eliminar el pokémon."));
         }
     }
 
-
-    public void copyFile(String fileName, InputStream in) {
-        try {
-            try ( // write the inputStream to a FileOutputStream
-                    OutputStream out = new FileOutputStream(new File("C://Users/dperez/Documents/imagenes/" + fileName))) {
-                int read = 0;
-                byte[] bytes = new byte[1024];
-
-                while ((read = in.read(bytes)) != -1) {
-                    out.write(bytes, 0, read);
-                }
-
-                in.close();
-                out.flush();
-            }
-
-            System.out.println("New file created!");
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-    
 }

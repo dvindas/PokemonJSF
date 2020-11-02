@@ -3,12 +3,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:p="http://primefaces.org/ui">
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
     
     <p:importEnum type="com.mycompany.pokemonjsf.util.TipoPokemon" var="TipoPokemon" allSuffix="ALL_ENUM_VALUES" />  
 
     <h:head>
-        <title>Pokemon JSF</title>
+        <title>Pokédex JSF</title>
         <link rel="shortcut icon" type="image/x-icon" href="#{request.contextPath}/resources/images/favicon.ico"/>
         <h:outputStylesheet library="css" name = "styles.css" /> 
     </h:head>
@@ -27,7 +28,7 @@
                         <f:facet name="left">
                             <h:panelGrid columns="2" cellpadding="2px">
                                 <p:graphicImage style="display: inline" library="images" name="pokebola.png" height="35px" width="35px"/>
-                                <spam>Pokemones</spam>
+                                <spam>Pokédex</spam>
                             </h:panelGrid>
                         </f:facet>
                         <f:facet name="right">
@@ -35,7 +36,7 @@
                             <p:commandButton title="Buscar" icon="pi pi-search" type="button" onclick="PF('wdtDialogBusqueda').show();"/>
                             <p:commandButton title="Guardar" icon="pi pi-save" actionListener="#{pokemonController.guardarPokemonOnAction()}" update="pngFormulario dlgBusqueda"/>
                             <p:commandButton title="Eliminar" icon="pi pi-trash" actionListener="#{pokemonController.eliminarPokemonOnAction()}">
-                                <p:confirm header="Confirmación" message="¿Deseas eliminar el pokemon?" icon="pi pi-exclamation-triangle" />
+                                <p:confirm header="Confirmación" message="¿Deseas eliminar el pokémon?" icon="pi pi-exclamation-triangle" />
                             </p:commandButton>
                         </f:facet>
                     </p:toolbar>
@@ -65,7 +66,7 @@
                             </h:panelGroup>
                             <h:panelGroup class="ui-g-12">
                                 <h:outputLabel value="Peso: " />
-                                <p:spinner value="#{pokemonController.pokemonDto.altura}" prefix="kg" min="0" decimalPlaces="2"/>
+                                <p:spinner value="#{pokemonController.pokemonDto.peso}" prefix="kg" min="0" decimalPlaces="2"/>
                             </h:panelGroup>
                             <h:panelGroup class="ui-g-12">
                                 <h:outputLabel value="Sexo " />
@@ -79,7 +80,7 @@
                 </h:form>
 
                 <p:dialog id="dlgBusqueda" header="Búsqueda de Pokemones" widgetVar="wdtDialogBusqueda" resizable="true" minimizable="true"
-                          position="center" width="60%" style="opacity: 0.95">
+                          position="center" width="80%" height="65vh" style="opacity: 0.95" showEffect="slide" hideEffect="slide">
                     <h:panelGroup>
                         <h:form id="formTablaPokemones">
                             <p:dataTable id="dttPokemones" 
@@ -87,9 +88,8 @@
                                          var="pok" value="#{pokemonController.pokemones}"
                                          selectionMode="single" 
                                          selection="#{pokemonController.pokemonSeleccionado}" 
-                                         paginator="true"
                                          widgetVar="wdtDttPokemones"
-                                         rowsPerPageTemplate="5,10,15">
+                                         scrollable="true" scrollHeight="475">
 
                                 <p:ajax 
                                     event="rowDblselect" 
@@ -108,7 +108,21 @@
                                 <p:column headerText="Tipo">
                                     <h:outputText value="#{pokemonController.getDescripcionTipo(pok.tipo)}" />
                                 </p:column>
+                                
+                                <p:column headerText="Altura">
+                                    <h:outputText value="#{pok.altura}" />
+                                </p:column>
+
+                                <p:column headerText="Peso">
+                                    <h:outputText value="#{pok.peso}" />
+                                </p:column>
+
+                                <p:column headerText="Sexo">
+                                    <h:outputText value="Macho" rendered="#{pok.sexo eq 'M'}"/>
+                                    <h:outputText value="Hembra" rendered="#{pok.sexo eq 'H'}"/>
+                                </p:column>
                             </p:dataTable>
+                            <p:commandButton type="button" value="Cerrar" style="margin-top: 15px;" onclick="PF('wdtDialogBusqueda').hide();"/>
                         </h:form>
                     </h:panelGroup>
                 </p:dialog>

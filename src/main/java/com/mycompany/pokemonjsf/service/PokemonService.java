@@ -34,9 +34,11 @@ public class PokemonService {
         this.pokemones.add(new PokemonDto(UUID.randomUUID().toString(), "Raichu", "Su larga cola le sirve como toma de tierra para protegerse a sí mismo del alto voltaje que genera su cuerpo.", TipoPokemon.FUEGO.getValue(), 0.8, 30d, "M"));
         this.pokemones.add(new PokemonDto(UUID.randomUUID().toString(), "Raichu", "Para acabar con su enemigo, lo aplasta con el peso de su cuerpo. En momentos de apuro, se esconde en el caparazón.", TipoPokemon.AGUA.getValue(), 1.6, 85.5d, "M"));
     }
-    
-    public void guardarPokemon(PokemonDto pokemonDto){
-        this.pokemones.add(pokemonDto);
+
+    public void guardarPokemon(PokemonDto pokemonDto) {
+        if (!pokemones.contains(pokemonDto)) {
+            this.pokemones.add(pokemonDto);
+        }
     }
     
     public void eliminarPokemon(PokemonDto pokemonDto){
