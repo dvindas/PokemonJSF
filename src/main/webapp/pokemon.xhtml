@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    
+    <p:importEnum type="com.mycompany.pokemonjsf.util.TipoPokemon" var="TipoPokemon" allSuffix="ALL_ENUM_VALUES" />  
+
+    <h:head>
+        <title>Pokemon JSF</title>
+        <link rel="shortcut icon" type="image/x-icon" href="#{request.contextPath}/resources/images/favicon.ico"/>
+        <h:outputStylesheet library="css" name = "styles.css" /> 
+    </h:head>
+
+    <h:body>
+
+        <h:panelGroup class="panel-principal">
+
+            <p:growl id="mensajes" showDetail="true">
+                <p:autoUpdate/>
+            </p:growl>
+
+            <div class="card panel-secundario">
+                <h:form id="formPokemon"> 
+                    <p:toolbar>
+                        <f:facet name="left">
+                            <h:panelGrid columns="2" cellpadding="2px">
+                                <p:graphicImage style="display: inline" library="images" name="pokebola.png" height="35px" width="35px"/>
+                                <spam>Pokemones</spam>
+                            </h:panelGrid>
+                        </f:facet>
+                        <f:facet name="right">
+                            <p:commandButton title="Nuevo" icon="pi pi-plus" actionListener="#{pokemonController.nuevoPokemonOnAction()}" update="pngFormulario"/>
+                            <p:commandButton title="Buscar" icon="pi pi-search" type="button" onclick="PF('wdtDialogBusqueda').show();"/>
+                            <p:commandButton title="Guardar" icon="pi pi-save" actionListener="#{pokemonController.guardarPokemonOnAction()}" update="pngFormulario dlgBusqueda"/>
+                            <p:commandButton title="Eliminar" icon="pi pi-trash" actionListener="#{pokemonController.eliminarPokemonOnAction()}">
+                                <p:confirm header="Confirmación" message="¿Deseas eliminar el pokemon?" icon="pi pi-exclamation-triangle" />
+                            </p:commandButton>
+                        </f:facet>
+                    </p:toolbar>
+                    <h:panelGroup id="pngFormulario" class="ui-g ui-fluid">
+                        <div class="ui-g-12 ui-md-6">
+                            <h:panelGroup class="ui-g-12">
+                                <p:outputLabel value="Nombre"/>
+                                <p:inputText value="#{pokemonController.pokemonDto.nombre}"/>
+                            </h:panelGroup>                          
+                            <h:panelGroup class="ui-g-12">
+                                <p:outputLabel value="Descripción"/>
+                                <p:inputTextarea value="#{pokemonController.pokemonDto.descripcion}" cols="3"/>
+                            </h:panelGroup>
+                            <h:panelGroup class="ui-g-12">
+                                <p:outputLabel value="Tipo"/>
+                                <p:selectOneMenu value="#{pokemonController.pokemonDto.tipo}">
+                                    <f:selectItem itemLabel="Seleccione el tipo" itemValue="" />
+                                    <f:selectItem itemLabel="Agua"  itemValue="#{TipoPokemon.AGUA.getValue()}"/>
+                                    <f:selectItem itemLabel="Fuego" itemValue="#{TipoPokemon.FUEGO.getValue()}"/>
+                                    <f:selectItem itemLabel="Roca"  itemValue="#{TipoPokemon.ROCA.getValue()}"/>
+                                    <f:selectItem itemLabel="Rayo"  itemValue="#{TipoPokemon.RAYO.getValue()}"/>
+                                </p:selectOneMenu>
+                            </h:panelGroup>
+                            <h:panelGroup class="ui-g-12">
+                                <h:outputLabel value="Altura: " />
+                                <p:spinner value="#{pokemonController.pokemonDto.altura}" prefix="m" min="0" decimalPlaces="2"/>
+                            </h:panelGroup>
+                            <h:panelGroup class="ui-g-12">
+                                <h:outputLabel value="Peso: " />
+                                <p:spinner value="#{pokemonController.pokemonDto.altura}" prefix="kg" min="0" decimalPlaces="2"/>
+                            </h:panelGroup>
+                            <h:panelGroup class="ui-g-12">
+                                <h:outputLabel value="Sexo " />
+                                <p:selectOneRadio value="#{pokemonController.pokemonDto.sexo}">
+                                    <f:selectItem itemLabel="Macho" itemValue="M" />
+                                    <f:selectItem itemLabel="Hembra" itemValue="H" />
+                                </p:selectOneRadio>
+                            </h:panelGroup>
+                        </div>
+                    </h:panelGroup>
+                </h:form>
+
+                <p:dialog id="dlgBusqueda" header="Búsqueda de Pokemones" widgetVar="wdtDialogBusqueda" resizable="true" minimizable="true"
+                          position="center" width="60%" style="opacity: 0.95">
+                    <h:panelGroup>
+                        <h:form id="formTablaPokemones">
+                            <p:dataTable id="dttPokemones" 
+                                         rowKey="#{pok.id}"
+                                         var="pok" value="#{pokemonController.pokemones}"
+                                         selectionMode="single" 
+                                         selection="#{pokemonController.pokemonSeleccionado}" 
+                                         paginator="true"
+                                         widgetVar="wdtDttPokemones"
+                                         rowsPerPageTemplate="5,10,15">
+
+                                <p:ajax 
+                                    event="rowDblselect" 
+                                    listener="#{pokemonController.cargarPokemon}" 
+                                    update="formPokemon:pngFormulario"
+                                    global="true"/>
+
+                                <p:column headerText="Nombre" filterBy="#{pok.nombre}" filterMatchMode="contains">
+                                    <h:outputText value="#{pok.nombre}" />
+                                </p:column>
+
+                                <p:column headerText="Descripción" filterBy="#{pok.descripcion}" filterMatchMode="contains">
+                                    <h:outputText value="#{pok.descripcion}" />
+                                </p:column>
+
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{pokemonController.getDescripcionTipo(pok.tipo)}" />
+                                </p:column>
+                            </p:dataTable>
+                        </h:form>
+                    </h:panelGroup>
+                </p:dialog>
+            </div>
+
+            <h:form>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                </p:confirmDialog>    
+            </h:form>
+
+            <p:ajaxStatus style="float: right;">
+                <f:facet name="start">
+                    <p:graphicImage library="images" name="loading.gif" />
+                </f:facet>
+            </p:ajaxStatus>
+
+        </h:panelGroup>
+    </h:body>
+</html>
+
