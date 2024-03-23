@@ -1,2 +1,2 @@
 # PokemonJSF
-Aplicación JSF
+JSF Application
